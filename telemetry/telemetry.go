@@ -2,30 +2,18 @@ package telemetry
 
 import (
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
+	"go.opentelemetry.io/otel/exporters/jaeger"
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.17.0"
-	"log"
-	"os"
 )
 
 func New(serviceName, version, env string) (*trace.TracerProvider, error) {
-	l := log.New(os.Stdout, "", 0)
-
-	file, err := os.Create("traces.txt")
+	jgr, err := jaeger.New(jaeger.WithCollectorEndpoint(jaeger.WithEndpoint("http://localhost:14268/api/traces")))
 	if err != nil {
-		l.Fatal(err)
+		return nil, err
 	}
-	defer file.Close()
 
-	exporter, err := stdouttrace.New(
-		stdouttrace.WithWriter(file),
-		// Use human-readable output.
-		stdouttrace.WithPrettyPrint(),
-		// Do not print timestamps for the demo.
-		stdouttrace.WithoutTimestamps(),
-	)
 	if err != nil {
 		return nil, err
 	}
@@ -44,7 +32,7 @@ func New(serviceName, version, env string) (*trace.TracerProvider, error) {
 	}
 
 	return trace.NewTracerProvider(
-		trace.WithBatcher(exporter),
+		trace.WithBatcher(jgr),
 		trace.WithResource(resource),
 	), nil
 }

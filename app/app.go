@@ -19,7 +19,8 @@ func New() error {
 
 	svc := service.New(tel)
 	mux.HandleFunc("/hello", func(w http.ResponseWriter, r *http.Request) {
-		ctx, _ := tel.Tracer(name).Start(r.Context(), "hello")
+		ctx, span := tel.Tracer(name).Start(r.Context(), "/hello")
+		defer span.End()
 		hello := svc.Hello(ctx)
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(hello))
