@@ -30,7 +30,6 @@ func New() error {
 		Addr:    ":8080",
 		Handler: mux,
 	}
-
 	otel.SetTracerProvider(tel)
 
 	if err := srv.ListenAndServe(); err != nil {
